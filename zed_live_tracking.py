@@ -8,7 +8,6 @@ import pyzed.sl as sl
 import argparse
 
 from polygon_draw import PolygonDrawer
-import matplotlib.pyplot as plt
 
 from lightglue import LightGlue, SuperPoint, DISK
 from lightglue.utils import load_image, rbd
@@ -16,7 +15,7 @@ from lightglue import viz2d
 import torch
 from collections import deque
 import matplotlib.pyplot as plt
-from pdb import set_trace as bp
+# from pdb import set_trace as bp
 
 torch.set_grad_enabled(False)
 
@@ -134,12 +133,14 @@ def main():
             
             if len(frame_buffer)==S:
                 print("##############################DISPLAY IMAGE##################")
-                plt.imshow(frame_buffer[0][:3,:,:])
-                bp()
+                cv2.imwrite('test.jpg',frame_buffer[0][:3,:,:].permute(2,1,0).detach().cpu().numpy())
+                # bp()
                 feats0 = extractor.extract(frame_buffer[0][:3,:,:].to(opt.device))
                 feats1 = extractor.extract(frame_buffer[1][:3,:,:].to(opt.device))
+                print(f"{feats0=}")
 
                 matches01 = matcher({"image0": feats0, "image1": feats1})
+                print(f"{matches01=}")
 
                 feats0, feats1, matches01 = [
                     rbd(x) for x in [feats0, feats1, matches01]
@@ -147,11 +148,13 @@ def main():
 
                 kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
                 m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
-                # print(m_kpts0.shape)
-                # print(m_kpts1.shape)
+                print(m_kpts0.shape)
+                print(m_kpts1.shape)
 
+                print(frame_buffer[0].shape)
+                print(type(frame_buffer[0]))
                 # print(type(frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8)))
-                axes = viz2d.plot_images([frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8), frame_buffer[1].permute(1,2,0).cpu().numpy().astype(np.uint8)])
+                axes = viz2d.plot_images([frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8)[:,:,:3], frame_buffer[1].permute(1,2,0).cpu().numpy().astype(np.uint8)[:,:,:3]])
                 # print("set axes")
                 viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
                 # print("plotted matches")
@@ -164,7 +167,9 @@ def main():
                 # viz2d.plot_keypoints([kpts0, kpts1], colors=[kpc0, kpc1], ps=6)
                 
                 curr_frame_count-=1
-                print(curr_frame_count)
+                new_frame_counter+=1
+                print(f'{curr_frame_count=}')
+                print(f'{new_frame_counter=}')
 
 
 
