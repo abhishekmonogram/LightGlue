@@ -50,8 +50,8 @@ def plot_images(imgs, titles=None, cmaps="gray", dpi=100, pad=0.5, adaptive=True
         adaptive: whether the figure size should fit the image aspect ratios.
     """
     # conversion to (H, W, 3) for torch.Tensor
-    print(imgs[0].shape)
-    print(imgs[1].shape)
+    # print(imgs[0].shape)
+    # print(imgs[1].shape)
 
     imgs = [
         img.permute(1, 2, 0).cpu().numpy()
@@ -60,8 +60,8 @@ def plot_images(imgs, titles=None, cmaps="gray", dpi=100, pad=0.5, adaptive=True
         for img in imgs
     ]
 
-    print(imgs[0].shape)
-    print(type(imgs[0]))
+    # print(imgs[0].shape)
+    # print(type(imgs[0]))
 
     n = len(imgs)
     if not isinstance(cmaps, (list, tuple)):
@@ -72,15 +72,15 @@ def plot_images(imgs, titles=None, cmaps="gray", dpi=100, pad=0.5, adaptive=True
     else:
         ratios = [4 / 3] * n
     figsize = [sum(ratios) * 4.5, 4.5]
-    print(figsize)
+    # print(figsize)
     # bp()
     fig, ax = plt.subplots(1, n, figsize=figsize, dpi=dpi, gridspec_kw={"width_ratios": ratios})
-    print(f"{n=}")
+    # print(f"{n=}")
     if n == 1:
         ax = [ax]
     for i in range(n):
-        print(imgs[i].shape)
-        print(type(imgs[i]))
+        # print(imgs[i].shape)
+        # print(type(imgs[i]))
         ax[i].imshow(imgs[i], cmap=plt.get_cmap(cmaps[i]))
         ax[i].get_yaxis().set_ticks([])
         ax[i].get_xaxis().set_ticks([])

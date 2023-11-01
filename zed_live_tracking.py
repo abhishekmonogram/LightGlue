@@ -96,7 +96,6 @@ def main():
     new_frame_req = S
     frame_buffer = deque(maxlen=S)
     curr_frame_count = 0
-    frame_buffer = []
 
 
     while viewer.is_available() and viewer_rgb.is_available():
@@ -104,8 +103,8 @@ def main():
             curr_frame_count+=1
 
             if curr_frame_count ==1:
-                extractor = SuperPoint(max_num_keypoints=2048).eval().to(opt.device)  # load the extractor
-                matcher = LightGlue(features="superpoint").eval().to(opt.device)
+                extractor = SuperPoint(max_num_keypoints=4096).eval().to(opt.device)  # load the extractor
+                matcher = LightGlue(features="superpoint", depth_confidence=-1, width_confidence=-1,filter_threshold=0.9).eval().to(opt.device)
 
             zed.retrieve_image(image_zed, sl.VIEW.LEFT)
             # Use get_data() to get the numpy array
@@ -137,10 +136,10 @@ def main():
                 # bp()
                 feats0 = extractor.extract(frame_buffer[0][:3,:,:].to(opt.device))
                 feats1 = extractor.extract(frame_buffer[1][:3,:,:].to(opt.device))
-                print(f"{feats0=}")
+                # print(f"{feats0=}")
 
                 matches01 = matcher({"image0": feats0, "image1": feats1})
-                print(f"{matches01=}")
+                # print(f"{matches01=}")
 
                 feats0, feats1, matches01 = [
                     rbd(x) for x in [feats0, feats1, matches01]
@@ -148,19 +147,20 @@ def main():
 
                 kpts0, kpts1, matches = feats0["keypoints"], feats1["keypoints"], matches01["matches"]
                 m_kpts0, m_kpts1 = kpts0[matches[..., 0]], kpts1[matches[..., 1]]
-                print(m_kpts0.shape)
-                print(m_kpts1.shape)
+                # print(m_kpts0.shape)
+                # print(m_kpts1.shape)
 
-                print(frame_buffer[0].shape)
-                print(type(frame_buffer[0]))
+                # print(frame_buffer[0].shape)
+                # print(type(frame_buffer[0]))
                 # print(type(frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8)))
-                axes = viz2d.plot_images([frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8)[:,:,:3], frame_buffer[1].permute(1,2,0).cpu().numpy().astype(np.uint8)[:,:,:3]])
+                axes = viz2d.plot_images([cv2.cvtColor(frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8),cv2.COLOR_BGR2RGB)[:,:,:3], cv2.cvtColor(frame_buffer[1].permute(1,2,0).cpu().numpy().astype(np.uint8),cv2.COLOR_BGR2RGB)[:,:,:3]])
                 # print("set axes")
                 viz2d.plot_matches(m_kpts0, m_kpts1, color="lime", lw=0.2)
                 # print("plotted matches")
                 viz2d.add_text(0, f'Stop after {matches01["stop"]} layers')
              
-                viz2d.save_plot("./test.png")
+                viz2d.save_plot(f"frames/test_{new_frame_counter}.png")
+                # viz2d.save_plot(f"frames/test.png")
 
                 # kpc0, kpc1 = viz2d.cm_prune(matches01["prune0"]), viz2d.cm_prune(matches01["prune1"])
                 # viz2d.plot_images([frame_buffer[0].permute(1,2,0).cpu().numpy().astype(np.uint8), frame_buffer[1].permute(1,2,0).cpu().numpy().astype(np.uint8)])
@@ -170,6 +170,7 @@ def main():
                 new_frame_counter+=1
                 print(f'{curr_frame_count=}')
                 print(f'{new_frame_counter=}')
+                print(f'{matches.shape=}')
 
 
 
@@ -198,18 +199,3 @@ if __name__ == "__main__":
         print("Specify only input_svo_file or ip_address, or none to use wired camera, not both. Exit program")
         exit()
     main() 
-# if __name__ == '__main__':
-
-#     zed = sl.Camera()
-#     point_cloud = sl.Mat()
-
-#     zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA)
-
-#     point3D = point_cloud.get_value(0, 0)
-#     x = point3D[0]
-#     print(type(x))
-#     y = point3D[1]
-#     z = point3D[2]
-#     color = point3D[3]
-
-    
